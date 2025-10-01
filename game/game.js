@@ -1,11 +1,12 @@
 class NumberSumGame {
     constructor() {
-        this.gridSize = 5;
+        this.gridSize = 8; // Changed to 8x8 grid
         this.grid = [];
         this.targetSum = 0;
         this.selectedPositions = new Set(); // Stores "row,col" strings of currently selected cells
         this.clearedCells = new Set();    // Stores "row,col" strings of cells part of a successful sum
         this.score = 0;
+        this.highestScore = this.loadHighestScore(); // Load highest score from local storage
         this.hintsRemaining = 3;
         this.difficulty = 'easy'; // Default difficulty
 
@@ -13,15 +14,17 @@ class NumberSumGame {
         this.gridElement = document.getElementById('grid-container');
         this.targetSumElement = document.getElementById('target-sum');
         this.scoreElement = document.getElementById('score');
+        this.highestScoreElement = document.getElementById('highest-score'); // New element for highest score
         this.feedbackElement = document.getElementById('feedback-message');
         this.newGameBtn = document.getElementById('new-game-btn');
         this.hintBtn = document.getElementById('hint-btn');
         this.difficultySelector = document.getElementById('difficulty-selector');
-        this.hintInfoElement = document.getElementById('hint-info'); // This element is not used, can be removed
         this.autoSuccessElement = document.getElementById('auto-success');
         this.timerElement = document.getElementById('timer');
         this.gameOverElement = document.getElementById('game-over');
-        
+        this.currentSumElement = document.getElementById('current-sum'); // New element for current sum
+        this.restartGameBtn = document.getElementById('restart-game-btn'); // Get the restart button
+
         // Sound elements
         this.selectSound = document.getElementById('select-sound');
         this.successSound = document.getElementById('success-sound');
@@ -46,12 +49,14 @@ class NumberSumGame {
         this.newGameBtn.addEventListener('click', () => this.generateNewGame());
         this.hintBtn.addEventListener('click', () => this.showHint());
         this.difficultySelector.addEventListener('click', (event) => this.handleDifficultyChange(event));
+        this.restartGameBtn.addEventListener('click', () => this.generateNewGame()); // Add listener for the restart button
         
         // Grid interaction setup
         this.setupGridEvents();
         
         // Generate initial game state
         this.generateNewGame();
+        this.updateHighestScoreDisplay(); // Display highest score on load
     }
 
     setupGridEvents() {
@@ -75,14 +80,14 @@ class NumberSumGame {
                     // Deselect
                     this.selectedPositions.delete(posKey);
                     this.updateSelectionDisplay();
-                    // No immediate checkSum here, only if the user adds/removes to see current sum
-                    this.showCurrentSumFeedback();
+                    this.updateCurrentSumDisplay(); // Update current sum
                 } else {
                     // Select, only if adjacent to an existing selection OR if it's the first cell
                     // and it's not a cleared cell
                     if (this.selectedPositions.size === 0 || this.isAdjacent(cellPos)) {
                         this.selectedPositions.add(posKey);
                         this.updateSelectionDisplay();
+                        this.updateCurrentSumDisplay(); // Update current sum
                         this.checkSum(); // Check sum after selection
                     } else {
                         this.showFeedback('You can only select cells adjacent to your current selection!', 'error');
@@ -155,13 +160,22 @@ class NumberSumGame {
         // Calculate final stats
         const timeBonus = isWin && this.gameTimer > 0 ? this.gameTimer * 10 : 0;
         const finalScore = this.score + timeBonus;
+        
+        // Update highest score if current score is higher
+        if (finalScore > this.highestScore) {
+            this.highestScore = finalScore;
+            this.saveHighestScore(this.highestScore);
+            this.updateHighestScoreDisplay();
+        }
+
         const totalTimeElapsed = Math.floor((Date.now() - this.gameStartTime) / 1000);
         const totalMinutes = Math.floor(totalTimeElapsed / 60);
         const totalSeconds = totalTimeElapsed % 60;
         
         // Update game over screen
         document.getElementById('game-over-title').textContent = title;
-        document.getElementById('final-score').textContent = this.score; // Display score before bonus
+        document.getElementById('final-score').textContent = finalScore; // Display total score including bonus
+        document.getElementById('base-score').textContent = this.score; // Display base score
         document.getElementById('time-bonus').textContent = timeBonus;
         document.getElementById('total-time').textContent = `${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`;
         
@@ -177,7 +191,10 @@ class NumberSumGame {
         for (let r = 0; r < this.gridSize; r++) {
             this.grid[r] = [];
             for (let c = 0; c < this.gridSize; c++) {
-                this.grid[r][c] = Math.floor(Math.random() * 9) + 1; // Numbers 1-9
+                // Numbers from -9 to 9, excluding 0
+                let randomNumber = Math.floor(Math.random() * 18) - 9; // Range -9 to 8
+                if (randomNumber >= 0) randomNumber++; // Adjust to skip 0, so it's -9 to -1 and 1 to 9
+                this.grid[r][c] = randomNumber;
             }
         }
     }
@@ -203,6 +220,7 @@ class NumberSumGame {
         this.updateSelectionDisplay();
         this.hideFeedback();
         this.clearHints();
+        this.updateCurrentSumDisplay(); // Clear current sum display
     }
 
     isAdjacent(cellPos) {
@@ -228,6 +246,14 @@ class NumberSumGame {
             sum += this.grid[row][col];
         }
         return sum;
+    }
+
+    updateCurrentSumDisplay() {
+        if (this.selectedPositions.size === 0) {
+            this.currentSumElement.textContent = '0';
+        } else {
+            this.currentSumElement.textContent = this.calculateCurrentSum();
+        }
     }
 
     checkSum() {
@@ -275,15 +301,23 @@ class NumberSumGame {
     updateSelectionDisplay() {
         document.querySelectorAll('.grid-cell').forEach(cell => {
             const posKey = `${cell.dataset.row},${cell.dataset.col}`;
-            cell.classList.remove('selected', 'cleared', 'hint'); // Clear hint too
+            cell.classList.remove('selected', 'cleared', 'hint', 'negative-number'); // Clear hint too
             
+            // Add class for negative numbers for styling
+            const cellValue = parseInt(cell.textContent);
+            if (cellValue < 0) {
+                cell.classList.add('negative-number');
+            }
+
             if (this.clearedCells.has(posKey)) {
                 cell.classList.add('cleared');
                 // Already cleared cells should not be able to be selected, visually indicate
                 cell.style.pointerEvents = 'none'; // Disable click for cleared cells
-                cell.textContent = ''; // Optionally clear number for cleared cells
+                cell.textContent = '✓'; // Change to checkmark for cleared cells
             } else {
                 cell.style.pointerEvents = 'auto'; // Re-enable for non-cleared cells
+                // Restore original number if it was cleared
+                cell.textContent = this.grid[parseInt(cell.dataset.row)][parseInt(cell.dataset.col)]; 
                 if (this.selectedPositions.has(posKey)) {
                     cell.classList.add('selected');
                 }
@@ -359,6 +393,7 @@ class NumberSumGame {
         
         this.generateTargetSum(); // Generate new target sum
         this.targetSumElement.textContent = this.targetSum;
+        this.updateCurrentSumDisplay(); // Update current sum display
         
         // Reset hints for new target
         this.hintsRemaining = 3;
@@ -382,6 +417,7 @@ class NumberSumGame {
                     for (let c2 = c1; c2 < this.gridSize; c2++) {
                         let sum = 0;
                         let validRegion = true;
+                        let cellCount = 0; // Track number of cells in the region
                         
                         // Check if all cells in this region are un-cleared
                         for (let r = r1; r <= r2; r++) {
@@ -392,14 +428,16 @@ class NumberSumGame {
                                     break;
                                 }
                                 sum += this.grid[r][c];
+                                cellCount++;
                             }
                             if (!validRegion) break;
                         }
                         
-                        if (validRegion && sum > 0) {
+                        // Solutions must have at least 2 cells to be a "sum" (single cell sums are too easy for most targets)
+                        if (validRegion && cellCount >= 2) { 
                             solutions.push({
                                 sum: sum,
-                                area: (r2 - r1 + 1) * (c2 - c1 + 1),
+                                area: cellCount, // Using cellCount as area
                                 coords: { r1, c1, r2, c2 }
                             });
                         }
@@ -417,7 +455,7 @@ class NumberSumGame {
         let filteredSolutions = solutions;
         
         // Apply progressive difficulty: try to find slightly larger sums or areas
-        const minArea = Math.max(1, Math.floor(1 * this.progressiveMultiplier)); // Start from 1-cell regions, but grow
+        const minArea = Math.max(2, Math.floor(2 * this.progressiveMultiplier)); // Start from 2-cell regions, but grow
         const maxArea = Math.floor(this.gridSize * this.gridSize * 0.75); // Cap max area
         
         const areaFiltered = filteredSolutions.filter(s => s.area >= minArea && s.area <= maxArea);
@@ -428,8 +466,8 @@ class NumberSumGame {
         // Further filter by difficulty level for target *selection*
         switch (this.difficulty) {
             case 'easy':
-                // Prefer smaller regions (1-6 cells)
-                const easyFiltered = filteredSolutions.filter(s => s.area <= 6);
+                // Prefer smaller regions (2-6 cells)
+                const easyFiltered = filteredSolutions.filter(s => s.area >= 2 && s.area <= 6);
                 filteredSolutions = easyFiltered.length > 0 ? easyFiltered : filteredSolutions;
                 break;
             case 'medium':
@@ -533,6 +571,19 @@ class NumberSumGame {
         }
     }
 
+    loadHighestScore() {
+        const storedScore = localStorage.getItem('numberSumHighestScore');
+        return storedScore ? parseInt(storedScore) : 0;
+    }
+
+    saveHighestScore(score) {
+        localStorage.setItem('numberSumHighestScore', score.toString());
+    }
+
+    updateHighestScoreDisplay() {
+        this.highestScoreElement.textContent = this.highestScore;
+    }
+
     generateNewGame() {
         // Reset all game state
         this.clearSelection();
@@ -545,7 +596,8 @@ class NumberSumGame {
         this.targetSumElement.textContent = this.targetSum;
         this.feedbackElement.classList.remove('show');
         this.autoSuccessElement.classList.remove('show');
-        
+        this.updateCurrentSumDisplay(); // Reset current sum display
+
         // Reset game timer and state
         this.gameTimer = 600; // Reset to 10 minutes
         this.gameActive = true;
@@ -562,6 +614,7 @@ class NumberSumGame {
         // Restart timer
         this.startGameTimer();
         this.updateTimerDisplay(); // Initial display update
+        this.updateHighestScoreDisplay(); // Ensure highest score is visible
     }
 }
 

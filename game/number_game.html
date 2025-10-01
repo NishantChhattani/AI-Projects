@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Number Sum Game</title>
+    <title>Number Sum Challenge</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         body {
@@ -23,7 +23,7 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             padding: 30px;
             text-align: center;
-            max-width: 600px;
+            max-width: 700px; /* Increased max-width for 8x8 grid */
             width: 90%;
             position: relative;
             overflow: hidden;
@@ -31,55 +31,69 @@
 
         h1 {
             color: #2d3748;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             font-size: 2.5rem;
             font-weight: 700;
         }
 
-        .stats-bar {
+        .top-bar {
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 25px;
             padding: 15px;
             background-color: #edf2f7;
             border-radius: 10px;
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
         }
 
-        .stat-item {
+        .top-stat-item {
             text-align: center;
+            flex: 1;
+            min-width: 100px; /* Ensure items don't get too small */
+            margin: 5px; /* Add some margin for wrapped items */
         }
 
-        .stat-label {
+        .top-stat-label {
             font-size: 0.9rem;
             color: #718096;
             margin-bottom: 5px;
         }
 
-        .stat-value {
-            font-size: 1.6rem;
+        .top-stat-value {
+            font-size: 1.8rem; /* Larger font for key stats */
             font-weight: 700;
             color: #2d3748;
         }
-
-        .target-sum {
-            color: #e53e3e;
+        
+        /* Specific colors for each stat */
+        .score-value {
+            color: #38a169; /* Green for score */
         }
 
-        .score {
-            color: #38a169;
+        .highest-score-value {
+            color: #4299e1; /* Blue for highest score */
         }
 
-        .timer {
+        .target-sum-value {
+            color: #e53e3e; /* Red for target sum */
+        }
+
+        .current-sum-value {
+            color: #f6ad55; /* Orange for current sum */
+        }
+
+        .timer-value {
             color: #e53e3e;
             font-weight: 700;
         }
 
-        .timer.warning {
+        .timer-value.warning {
             color: #ff6b35;
             animation: timerPulse 1s ease-in-out infinite;
         }
 
-        .timer.critical {
+        .timer-value.critical {
             color: #ff1744;
             animation: timerPulse 0.5s ease-in-out infinite;
         }
@@ -91,27 +105,31 @@
 
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
+            grid-template-columns: repeat(var(--grid-cols, 8), 1fr); /* Dynamic grid columns */
+            gap: 6px; /* Slightly smaller gap for 8x8 */
             margin: 25px auto;
-            max-width: 350px;
+            max-width: 500px; /* Adjusted max width for 8x8 cells */
             width: 100%;
         }
 
         .grid-cell {
             background-color: #e2e8f0;
-            border-radius: 8px;
-            height: 60px;
+            border-radius: 6px; /* Slightly smaller border-radius */
+            height: 55px; /* Slightly smaller height */
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.8rem;
+            font-size: 1.5rem; /* Slightly smaller font for 8x8 */
             font-weight: 700;
             color: #2d3748;
             cursor: pointer;
             transition: all 0.2s ease;
             user-select: none;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .grid-cell.negative-number {
+            color: #e53e3e; /* Red text for negative numbers */
         }
 
         .grid-cell:hover:not(.selected):not(.cleared) {
@@ -122,7 +140,7 @@
         .grid-cell.selected {
             background-color: #48bb78;
             color: white;
-            box-shadow: 0 4px 8px rgba(72, 187, 120, 0.4);
+            box-shadow: 0 4px 6px rgba(72, 187, 120, 0.4);
             transform: scale(1.05);
         }
 
@@ -131,14 +149,9 @@
             color: #edf2f7;
             cursor: default;
             transform: scale(1);
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
             font-size: 1.2rem; /* Make the 'X' smaller */
         }
-        
-        .grid-cell.cleared::before {
-            content: '✓'; /* Add a checkmark for cleared cells */
-        }
-
 
         .grid-cell.hint {
             animation: hintPulse 1s infinite alternate;
@@ -179,6 +192,7 @@
             display: flex;
             justify-content: center;
             gap: 15px;
+            flex-wrap: wrap; /* Allow buttons to wrap */
         }
 
         .btn {
@@ -208,42 +222,13 @@
             opacity: 0.7;
         }
 
-        .hint-info {
-            margin-top: 15px;
-            font-size: 0.9rem;
-            color: #718096;
-            min-height: 20px;
-        }
-
-        .auto-success {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(76, 175, 80, 0.9);
-            color: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease-in-out;
-            z-index: 1000;
-        }
-
-        .auto-success.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
         .difficulty-selector {
             margin-top: 20px;
             margin-bottom: 20px;
             display: flex;
             justify-content: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .difficulty-btn {
@@ -265,116 +250,138 @@
             font-weight: bold;
         }
 
-        .game-over {
-            position: fixed;
+        .auto-success {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(72, 187, 120, 0.95);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease-in-out;
+            pointer-events: none;
+        }
+
+        .auto-success.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .game-over-overlay {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
             display: flex;
-            align-items: center;
             justify-content: center;
-            z-index: 2000;
+            align-items: center;
+            flex-direction: column;
+            z-index: 20;
             opacity: 0;
-            visibility: hidden; /* Hide by default */
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-
-        .game-over.show {
-            opacity: 1;
-            visibility: visible; /* Show when 'show' class is added */
-        }
-
-        .game-over-content {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .game-over h2 {
-            color: #4a5568;
-            margin-bottom: 20px;
-            font-size: 2rem;
-        }
-
-        .final-stats {
-            margin: 20px 0;
+            visibility: hidden;
+            transition: all 0.4s ease-in-out;
+            border-radius: 15px;
             padding: 20px;
-            background: #f7fafc;
-            border-radius: 10px;
+            box-sizing: border-box;
         }
 
-        .final-stats div {
-            margin: 10px 0;
-            font-size: 1.1rem;
+        .game-over-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .game-over-overlay h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #f6ad55;
+            text-shadow: 0 0 10px rgba(246, 173, 85, 0.7);
+        }
+
+        .game-over-stats p {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+        .game-over-stats span {
+            font-weight: 700;
+            color: #66d9ef; /* A bright color for values */
         }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
     <div class="game-container">
-        <h1>Number Sum Challenge</h1>
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-6">Number Sum Challenge</h1>
 
-        <div class="difficulty-selector" id="difficulty-selector">
+        <div class="top-bar">
+            <div class="top-stat-item">
+                <div class="top-stat-label">Score</div>
+                <div id="score" class="top-stat-value score-value">0</div>
+            </div>
+            <div class="top-stat-item">
+                <div class="top-stat-label">Highest Score</div>
+                <div id="highest-score" class="top-stat-value highest-score-value">0</div>
+            </div>
+            <div class="top-stat-item">
+                <div class="top-stat-label">Target Sum</div>
+                <div id="target-sum" class="top-stat-value target-sum-value">0</div>
+            </div>
+            <!-- New element for current sum -->
+            <div class="top-stat-item">
+                <div class="top-stat-label">Current Sum</div>
+                <div id="current-sum" class="top-stat-value current-sum-value">0</div>
+            </div>
+            <div class="top-stat-item">
+                <div class="top-stat-label">Time Left</div>
+                <div id="timer" class="top-stat-value timer-value">10:00</div>
+            </div>
+        </div>
+
+        <div id="difficulty-selector" class="difficulty-selector">
             <button class="difficulty-btn active" data-difficulty="easy">Easy</button>
             <button class="difficulty-btn" data-difficulty="medium">Medium</button>
             <button class="difficulty-btn" data-difficulty="hard">Hard</button>
         </div>
 
-        <div class="stats-bar">
-            <div class="stat-item">
-                <div class="stat-label">Target Sum</div>
-                <div class="stat-value target-sum" id="target-sum">0</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Score</div>
-                <div class="stat-value score" id="score">0</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Time Left</div>
-                <div class="stat-value timer" id="timer">10:00</div>
-            </div>
+        <div id="grid-container" class="grid-container" style="--grid-cols: 8;">
+            <!-- Grid cells will be dynamically inserted here by JavaScript -->
         </div>
 
-        <div class="grid-container" id="grid-container">
-            <!-- Grid cells will be rendered here by JavaScript -->
-        </div>
-
-        <div class="feedback-message" id="feedback-message"></div>
-        <div class="hint-info" id="hint-info"></div>
+        <div id="feedback-message" class="feedback-message"></div>
+        <div id="auto-success" class="auto-success"></div>
 
         <div class="btn-container">
-            <button class="btn" id="new-game-btn">New Game</button>
-            <button class="btn" id="hint-btn">Get Hint (3)</button>
+            <button id="new-game-btn" class="btn">New Game</button>
+            <button id="hint-btn" class="btn">Get Hint (3)</button>
         </div>
-        <div class="auto-success" id="auto-success"></div>
-        
-        <div class="game-over" id="game-over">
-            <div class="game-over-content">
-                <h2 id="game-over-title">Game Complete!</h2>
-                <div class="final-stats" id="final-stats">
-                    <div>Final Score: <span id="final-score">0</span></div>
-                    <div>Time Bonus: <span id="time-bonus">0</span></div>
-                    <div>Total Time: <span id="total-time">0:00</span></div>
-                </div>
-                <button class="btn" onclick="location.reload()">Play Again</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- Audio elements for sound effects -->
-    <audio id="select-sound" preload="auto">
-        <source src="https://play.rosebud.ai/assets/Retro PickUp Coin 04.wav?GoYP" type="audio/wav">
-    </audio>
-    <audio id="success-sound" preload="auto">
-        <source src="https://play.rosebud.ai/assets/Retro PowerUP 09.wav?DNH3" type="audio/wav">
-    </audio>
-    <audio id="complete-sound" preload="auto">
-        <source src="https://play.rosebud.ai/assets/Retro Magic 34.wav?QYw6" type="audio/wav">
-    </audio>
+        <div id="game-over" class="game-over-overlay">
+            <h2 id="game-over-title">Game Over!</h2>
+            <div class="game-over-stats text-center">
+                <p>Base Score: <span id="base-score">0</span></p>
+                <p>Time Bonus: <span id="time-bonus">0</span></p>
+                <p>Final Score: <span id="final-score">0</span></p>
+                <p>Time Elapsed: <span id="total-time">0:00</span></p>
+            </div>
+            <!-- The restart-game-btn now has an ID and its event listener is in game.js -->
+            <button id="restart-game-btn" class="btn mt-8">Play Again</button>
+        </div>
+
+        <!-- Audio elements for sound effects -->
+        <audio id="select-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1110.mp3"></audio>
+        <audio id="success-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-success-alert-2005.mp3"></audio>
+        <audio id="complete-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-level-completed-2059.mp3"></audio>
+
+    </div>
 
     <script src="game.js"></script>
 </body>
