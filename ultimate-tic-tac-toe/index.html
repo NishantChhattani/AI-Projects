@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Tic Tac Toe</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Ultimate Tic Tac Toe</h1>
+        <div class="game-status">
+            <p id="status-message">Your turn! Select any cell.</p>
+        </div>
+        <div class="game-board">
+            <!-- 9 big boards -->
+            <div class="big-board" id="big-board-0">
+                <div class="small-board" id="board-0">
+                    <div class="cell" data-board="0" data-cell="0"></div>
+                    <div class="cell" data-board="0" data-cell="1"></div>
+                    <div class="cell" data-board="0" data-cell="2"></div>
+                    <div class="cell" data-board="0" data-cell="3"></div>
+                    <div class="cell" data-board="0" data-cell="4"></div>
+                    <div class="cell" data-board="0" data-cell="5"></div>
+                    <div class="cell" data-board="0" data-cell="6"></div>
+                    <div class="cell" data-board="0" data-cell="7"></div>
+                    <div class="cell" data-board="0" data-cell="8"></div>
+                </div>
+            </div>
+            <div class="big-board" id="big-board-1">
+                <div class="small-board" id="board-1">
+                    <div class="cell" data-board="1" data-cell="0"></div>
+                    <div class="cell" data-board="1" data-cell="1"></div>
+                    <div class="cell" data-board="1" data-cell="2"></div>
+                    <div class="cell" data-board="1" data-cell="3"></div>
+                    <div class="cell" data-board="1" data-cell="4"></div>
+                    <div class="cell" data-board="1" data-cell="5"></div>
+                    <div class="cell" data-board="1" data-cell="6"></div>
+                    <div class="cell" data-board="1" data-cell="7"></div>
+                    <div class="cell" data-board="1" data-cell="8"></div>
+                </div>
+            </div>
+            <div class="big-board" id="big-board-2">
+                <div class="small-board" id="board-2">
+                    <div class="cell" data-board="2" data-cell="0"></div>
+                    <div class="cell" data-board="2" data-cell="1"></div>
+                    <div class="cell" data-board="2" data-cell="2"></div>
+                    <div class="cell" data-board="2" data-cell="3"></div>
+                    <div class="cell" data-board="2" data-cell="4"></div>
+                    <div class="cell" data-board="2" data-cell="5"></div>
+                    <div class="cell" data-board="2" data-cell="6"></div>
+                    <div class="cell" data-board="2" data-cell="7"></div>
+                    <div class="cell" data-board="2" data-cell="8"></div>
+                </div>
+            </div>
+            <div class="big-board" id="big-board-3">
+                <div class="small-board" id="board-3">
+                    <div class="cell" data-board="3" data-cell="0"></div>
+                    <div class="cell" data-board="3" data-cell="1"></div>
+                    <div class="cell" data-board="3" data-cell="2"></div>
+                    <div class="cell" data-board="3" data-cell="3"></div>
+                    <div class="cell" data-board="3" data-cell="4"></div>
+                    <div class="cell" data-board="3" data-cell="5"></div>
+                    <div class="cell" data-board="3" data-cell="6"></div>
+                    <div class="cell" data-board="3" data-cell="7"></div>
+                    <div class="cell" data-board="3" data-cell="8"></div>
+                </div>
+            </div>
+            <div class="big-board" id="big-board-4">
+                <div class="small-board" id="board-4">
+                    <div class="cell" data-board="4" data-cell="0"></div>
+                    <div class="cell" data-board="4" data-cell="1"></div>
+                    <div class="cell" data-board="4" data-cell="2"></div>
+                    <div class="cell" data-board="4" data-cell="3"></div>
+                    <div class="cell" data-board="4" data-cell="4"></div>
+                    <div class="cell" data-board="4" data-cell="5"></div>
+                    <div class="cell" data-board="4" data-cell="6"></div>
+                    <div class="cell" data-board="4" data-cell="7"></div>
+                    <div class="cell" data-board="4" data-cell="8"></div>
+                </div>
+            </div>
+            <div class="big-board" id="big-board-5">
+                <div class="small-board" id="board-5">
+                    <div class="cell" data-board="5" data-cell="0"></div>
+                    <div class="cell" data-board="5" data-cell="1"></div>
+                    <div class="cell" data-board="5" data-cell="2"></div>
+                    <div class="cell" data-board="5" data-cell="3"></div>
+                    <div class="cell" data-board="5" data-cell="4"></div>
+                    <div class="cell" data-board="5" data-cell="5"></div>
+                    <div class="cell" data-board="5" data-cell="6"></div>
+                    <div class="cell" data-board="5" data-cell="7"></div>
+                    <div class="cell" data-board="5" data-cell="8"></div>
+                </div>
+            </div>
+            <div class="big-board" id="big-board-6">
+                <div class="small-board" id="board-6">
+                    <div class="cell" data-board="6" data-cell="0"></div>
+                    <div class="cell" data-board="6" data-cell="1"></div>
+                    <div class="cell" data-board="6" data-cell="2"></div>
+                    <div class="cell" data-board="6" data-cell="3"></div>
+                    <div class="cell" data-board="6" data-cell="4"></div>
+                    <div class="cell" data-board="6" data-cell="5"></div>
+                    <div class="cell" data-board="6" data-cell="6"></div>
+                    <div class="cell" data-board="6" data-cell="7"></div>
+                    <div class="cell" data-board="6" data-cell="8"></div>
+                </div>
+            </div>
+            <div class="big-board" id="big-board-7">
+                <div class="small-board" id="board-7">
+                    <div class="cell" data-board="7" data-cell="0"></div>
+                    <div class="cell" data-board="7" data-cell="1"></div>
+                    <div class="cell" data-board="7" data-cell="2"></div>
+                    <div class="cell" data-board="7" data-cell="3"></div>
+                    <div class="cell" data-board="7" data-cell="4"></div>
+                    <div class="cell" data-board="7" data-cell="5"></div>
+                    <div class="cell" data-board="7" data-cell="6"></div>
+                    <div class="cell" data-board="7" data-cell="7"></div>
+                    <div class="cell" data-board="7" data-cell="8"></div>
+                </div>
+            </div>
+            <div class="big-board" id="big-board-8">
+                <div class="small-board" id="board-8">
+                    <div class="cell" data-board="8" data-cell="0"></div>
+                    <div class="cell" data-board="8" data-cell="1"></div>
+                    <div class="cell" data-board="8" data-cell="2"></div>
+                    <div class="cell" data-board="8" data-cell="3"></div>
+                    <div class="cell" data-board="8" data-cell="4"></div>
+                    <div class="cell" data-board="8" data-cell="5"></div>
+                    <div class="cell" data-board="8" data-cell="6"></div>
+                    <div class="cell" data-board="8" data-cell="7"></div>
+                    <div class="cell" data-board="8" data-cell="8"></div>
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <button id="restart-button">Restart Game</button>
+        </div>
+        <div class="instructions">
+            <h2>How to Play</h2>
+            <p>1. The game consists of 9 small Tic Tac Toe boards arranged in a 3x3 grid.</p>
+            <p>2. You play as X, and the computer plays as O.</p>
+            <p>3. On your turn, you can mark any available cell in any board.</p>
+            <p>4. Win a small board by getting three of your marks in a row (horizontally, vertically, or diagonally).</p>
+            <p>5. Win the game by winning three small boards in a row (horizontally, vertically, or diagonally).</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
